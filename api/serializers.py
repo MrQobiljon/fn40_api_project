@@ -1,13 +1,43 @@
 from rest_framework import serializers
 
+from .models import Category, Food
+
 
 class CategorySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(max_length=255)
 
+    def create(self, validated_data):
+        category = Category.objects.create(**validated_data)
+        return category
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get("name", instance.name)
+        instance.save()
+        return instance
 
 
 
+class FoodSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
+    text = serializers.CharField(required=False)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    created = serializers.DateTimeField(read_only=True)
+    add_menu = serializers.BooleanField(default=True)
+    category_id = serializers.IntegerField()
+
+    def create(self, validated_data):
+        category = Food.objects.create(**validated_data)
+        return category
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get("name", instance.name)
+        instance.text = validated_data.get("text", instance.text)
+        instance.price = validated_data.get("price", instance.price)
+        instance.add_menu = validated_data.get("add_menu", instance.add_menu)
+        instance.category_id = validated_data.get("category_id", instance.category_id)
+        instance.save()
+        return instance
 
 
 

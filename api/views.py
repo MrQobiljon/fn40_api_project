@@ -1,8 +1,10 @@
+from django.contrib.gis.geos.prototypes.errcheck import free
 from django.forms import model_to_dict
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
+from rest_framework.generics import get_object_or_404
 
 from .models import Category, Food
 from .serializers import CategorySerializer
@@ -16,17 +18,33 @@ class CategoryApiView(APIView):
         else:
             return Response(CategorySerializer(Category.objects.get(pk=pk)).data)
 
-
     def post(self, request: Request, pk: int = None):
         if not pk:
-            name = request.data.get("name", None)
-            if name:
-                category = Category.objects.create(name=name)
-                return Response(model_to_dict(category), status=status.HTTP_201_CREATED)
-            return Response({"message": "Xato!!!"}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = CategorySerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            category = serializer.save()
+            return Response(CategorySerializer(category).data)
         else:
             return Response({"message": "Method POST not allowed!"},
                             status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def put(self, request: Request, pk: int = None):
+        if not pk:
+            return Response({"message": "Method PUT not allowed!"},
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        else:
+            category = get_object_or_404(Category, pk=pk)
+            serializer = CategorySerializer(data=request.data, instance=category)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(CategorySerializer(category).data)
+
+    def delete(self, request: Request, pk: int = None):
+        category = get_object_or_404(Category, pk=pk)
+        category.delete()
+        return Response({"message": "Category Deleted Successful!!!"},
+                        status=status.HTTP_204_NO_CONTENT)
+
 
 
 class FoodApiView(APIView):
