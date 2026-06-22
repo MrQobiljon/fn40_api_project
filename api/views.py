@@ -1,18 +1,22 @@
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import (ListCreateAPIView, RetrieveUpdateDestroyAPIView,
+                                     CreateAPIView)
 
-from .models import Category, Food
-from .serializers import CategorySerializer, FoodSerializer, FoodAdminSerializer
-
+from .models import Category, Food, Comment
+from .serializers import (CategorySerializer, FoodSerializer, FoodAdminSerializer,
+                          CommentSerializer)
+from .permissions import MyIsAuthenticatedOrReadOnly
 
 
 class CategoryApiView(ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [MyIsAuthenticatedOrReadOnly]
 
 
 class CategoryDetailApiView(RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [MyIsAuthenticatedOrReadOnly]
 
 
 class FoodApiView(ListCreateAPIView):
@@ -46,6 +50,21 @@ class FoodDetailApiView(RetrieveUpdateDestroyAPIView):
     lookup_url_kwarg = 'food_id'
 
 
+class CommentApiView(ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [MyIsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.validated_data["user"] = self.request.user
+        serializer.validated_data["food_id"] = self.kwargs.get("food_id")
+        serializer.save()
+
+
+class CommentDetailApiView(RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [MyIsAuthenticatedOrReadOnly]
 
 
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Category, Food
+from .models import Category, Food, Comment
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -12,11 +12,24 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class FoodSerializer(serializers.ModelSerializer):
+    my_category = serializers.ChoiceField(choices=Category.objects.all(), write_only=True)
     class Meta:
         model = Food
         fields = '__all__'
         # read_only_fields = ['text']
-        # depth = 1
+        depth = 1
+
+    def create(self, validated_data):
+        category = validated_data.pop("my_category")
+        food = Food.objects.create(**validated_data, category=category)
+        return food
+
+    def update(self, instance, validated_data):
+        instance.category = validated_data.pop("my_category") if validated_data.get("my_category") else instance.category
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 class FoodAdminSerializer(serializers.ModelSerializer):
@@ -24,6 +37,12 @@ class FoodAdminSerializer(serializers.ModelSerializer):
         model = Food
         fields = '__all__'
         depth = 1
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['id', 'text']
 
 
 # class CategorySerializer(serializers.Serializer):

@@ -1,7 +1,8 @@
 from django.urls import path
 
 from .views import (CategoryApiView, CategoryDetailApiView,
-                    FoodApiView, FoodDetailApiView)
+                    FoodApiView, FoodDetailApiView, CommentApiView,
+                    CommentDetailApiView)
 
 
 urlpatterns = [
@@ -12,4 +13,7 @@ urlpatterns = [
     path('foods/<int:food_id>/', FoodDetailApiView.as_view()),
 
     path('foods/category/<int:category_id>/', FoodApiView.as_view()),
+
+    path('foods/<int:food_id>/comments/', CommentApiView.as_view()),
+    path('foods/<int:food_id>/comments/<int:pk>/', CommentDetailApiView.as_view()),
 ]
