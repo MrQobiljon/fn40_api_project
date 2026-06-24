@@ -1,26 +1,18 @@
-from rest_framework.generics import (ListCreateAPIView, RetrieveUpdateDestroyAPIView,
-                                     CreateAPIView)
+from rest_framework.viewsets import ModelViewSet
+from rest_framework import permissions
 
 from .models import Category, Food, Comment
 from .serializers import (CategorySerializer, FoodSerializer, FoodAdminSerializer,
                           CommentSerializer)
-from .permissions import MyIsAuthenticatedOrReadOnly
 
 
-class CategoryApiView(ListCreateAPIView):
+class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [MyIsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
 
-class CategoryDetailApiView(RetrieveUpdateDestroyAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = [MyIsAuthenticatedOrReadOnly]
-
-
-class FoodApiView(ListCreateAPIView):
-    queryset = Food.objects.all()
+class FoodApiViewSet(ModelViewSet):
     serializer_class = FoodSerializer
 
     def get_queryset(self):
@@ -30,9 +22,9 @@ class FoodApiView(ListCreateAPIView):
         menu_response = True if menu == 'on' else False if menu == 'off' else None
 
         if category_id:
-            queryset = self.queryset.filter(category_id=category_id)
+            queryset = Food.objects.filter(category_id=category_id)
         else:
-            queryset = self.queryset.all()
+            queryset = Food.objects.all()
 
         if menu_response in [True, False]:
             queryset = queryset.filter(add_menu=menu_response)
@@ -44,27 +36,67 @@ class FoodApiView(ListCreateAPIView):
         return self.serializer_class
 
 
-class FoodDetailApiView(RetrieveUpdateDestroyAPIView):
-    queryset = Food.objects.all()
-    serializer_class = FoodSerializer
-    lookup_url_kwarg = 'food_id'
 
 
-class CommentApiView(ListCreateAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    permission_classes = [MyIsAuthenticatedOrReadOnly]
 
-    def perform_create(self, serializer):
-        serializer.validated_data["user"] = self.request.user
-        serializer.validated_data["food_id"] = self.kwargs.get("food_id")
-        serializer.save()
-
-
-class CommentDetailApiView(RetrieveUpdateDestroyAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    permission_classes = [MyIsAuthenticatedOrReadOnly]
+# class CategoryApiView(ListCreateAPIView):
+#     queryset = Category.objects.all()
+#     serializer_class = CategorySerializer
+#     permission_classes = [MyIsAuthenticatedOrReadOnly]
+#
+#
+# class CategoryDetailApiView(RetrieveUpdateDestroyAPIView):
+#     queryset = Category.objects.all()
+#     serializer_class = CategorySerializer
+#     permission_classes = [MyIsAuthenticatedOrReadOnly]
+#
+#
+# class FoodApiView(ListCreateAPIView):
+#     queryset = Food.objects.all()
+#     serializer_class = FoodSerializer
+#
+#     def get_queryset(self):
+#         category_id = self.kwargs.get("category_id")
+#
+#         menu = self.request.query_params.get('menu')
+#         menu_response = True if menu == 'on' else False if menu == 'off' else None
+#
+#         if category_id:
+#             queryset = self.queryset.filter(category_id=category_id)
+#         else:
+#             queryset = self.queryset.all()
+#
+#         if menu_response in [True, False]:
+#             queryset = queryset.filter(add_menu=menu_response)
+#         return queryset
+#
+#     def get_serializer_class(self):
+#         if self.request.user.is_staff:
+#             return FoodAdminSerializer
+#         return self.serializer_class
+#
+#
+# class FoodDetailApiView(RetrieveUpdateDestroyAPIView):
+#     queryset = Food.objects.all()
+#     serializer_class = FoodSerializer
+#     lookup_url_kwarg = 'food_id'
+#
+#
+# class CommentApiView(ListCreateAPIView):
+#     queryset = Comment.objects.all()
+#     serializer_class = CommentSerializer
+#     permission_classes = [MyIsAuthenticatedOrReadOnly]
+#
+#     def perform_create(self, serializer):
+#         serializer.validated_data["user"] = self.request.user
+#         serializer.validated_data["food_id"] = self.kwargs.get("food_id")
+#         serializer.save()
+#
+#
+# class CommentDetailApiView(RetrieveUpdateDestroyAPIView):
+#     queryset = Comment.objects.all()
+#     serializer_class = CommentSerializer
+#     permission_classes = [MyIsAuthenticatedOrReadOnly]
 
 
 
