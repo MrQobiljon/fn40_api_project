@@ -3,33 +3,46 @@ from rest_framework import serializers
 from .models import Category, Food, Comment
 
 
+
+class FoodSerializerForCategory(serializers.ModelSerializer):
+    class Meta:
+        model = Food
+        # fields = '__all__'
+        exclude = ['category']
+
+
 class CategorySerializer(serializers.ModelSerializer):
+
+    # foods = serializers.StringRelatedField(many=True)
+    # foods = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    # foods = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='food-detail')
+    # foods = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
+
+    # url = serializers.HyperlinkedIdentityField(view_name='category-detail')
+
+    foods = FoodSerializerForCategory(many=True, read_only=True)
+
+
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['id', 'name', 'foods']
         # fields = ['id', 'name']
         # exclude = ['id']
 
 
+class CategorySerializerForFood(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
 class FoodSerializer(serializers.ModelSerializer):
-    my_category = serializers.ChoiceField(choices=Category.objects.all(), write_only=True)
+    bolim = CategorySerializerForFood(read_only=True, source='category')
+
     class Meta:
         model = Food
         fields = '__all__'
-        # read_only_fields = ['text']
-        depth = 1
-
-    def create(self, validated_data):
-        category = validated_data.pop("my_category")
-        food = Food.objects.create(**validated_data, category=category)
-        return food
-
-    def update(self, instance, validated_data):
-        instance.category = validated_data.pop("my_category") if validated_data.get("my_category") else instance.category
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+        extra_kwargs = {'category': {'write_only': True}}
 
 
 class FoodAdminSerializer(serializers.ModelSerializer):
@@ -43,6 +56,32 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'text']
+
+
+
+# class FoodSerializer(serializers.ModelSerializer):
+#     my_category = serializers.ChoiceField(choices=Category.objects.all(), write_only=True)
+#     class Meta:
+#         model = Food
+#         fields = '__all__'
+#         # read_only_fields = ['text']
+#         depth = 1
+#
+#     def create(self, validated_data):
+#         category = validated_data.pop("my_category")
+#         food = Food.objects.create(**validated_data, category=category)
+#         return food
+#
+#     def update(self, instance, validated_data):
+#         instance.category = validated_data.pop("my_category") if validated_data.get("my_category") else instance.category
+#         for attr, value in validated_data.items():
+#             setattr(instance, attr, value)
+#         instance.save()
+#         return instance
+
+
+
+
 
 
 # class CategorySerializer(serializers.Serializer):
